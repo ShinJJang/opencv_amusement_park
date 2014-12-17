@@ -14,6 +14,10 @@ static GLfloat viking_xRot = 0.0f;
 static GLfloat viking_yRot = 0.0f;
 static GLfloat viking_zDistance = 0.0f;
 
+static GLfloat hurricane_xRot = 0.0f;
+static GLfloat hurricane_yRot = 0.0f;
+static GLfloat hurricane_zDistance = 0.0f;
+
 static GLfloat xRot = 0.0f;
 static GLfloat yRot = 0.0f;
 static GLfloat zDistance = 0.0f;
@@ -342,27 +346,64 @@ void Viking(){
 
 void DrawCircle(float cx, float cy, float cz, float r, int num_segments) {
     glBegin(GL_POLYGON);
+    glShadeModel(GL_SMOOTH);
+	GLubyte tmp = 50;
     for (int ii = 0; ii < num_segments; ii++)   {
+		if(ii % 90 == 0) {
+			tmp += 50;
+			glColor3ub((GLubyte)tmp, (GLubyte)30, (GLubyte)10);
+		}
+
         float theta = 2.0f * 3.1415926f * float(ii) / float(num_segments);//get the current angle 
         float x = r * cosf(theta);//calculate the x component 
-        float z = r * sinf(theta);//calculate the y component 
+        float z = r * sinf(theta);//calculate the y component 		
         glVertex3f(x+cx, cy, z+cz);//output vertex 
     }
+	glColor3f(0.0f, 0.0f, 1.0f);
     glEnd();
 }
 
 void Hurricane() {
-	//glRotatef(viking_xRot, 1.0f, 0.0f, 0.0f);   
-    //glRotatef(viking_yRot, 0.0f, 1.0f, 0.0f);
-	//glRotatef(viking_zDistance, 0.0f, 0.0f, 1.0f);   
-	//glTranslatef(200.0f, -50.0f, 0.0f);
+	glRotatef(viking_xRot, 1.0f, 0.0f, 0.0f);   
+    glRotatef(viking_yRot, 0.0f, 1.0f, 0.0f);
+	glRotatef(viking_zDistance, 0.0f, 0.0f, 1.0f);   
+	glTranslatef(200.0f, -50.0f, 0.0f);
 
 	glPushMatrix();
-	//glColor4f(0.7f, 0.3f, 0.3f, 0.9f);
-	DrawCircle(0.0f, 0.0f, 0.0f, 30.0f, 360);
+	
+	glRotatef(hurricane_xRot, 1.0f, 0.0f, 0.0f);   
+    glRotatef(hurricane_yRot, 0.0f, 1.0f, 0.0f);
+	glRotatef(hurricane_zDistance, 0.0f, 0.0f, 1.0f);   
+
 	GLUquadricObj *quadratic;
-	quadratic = gluNewQuadric();
-	gluCylinder(quadratic,0.1f,0.1f,30.0f,32,32);
+	quadratic = gluNewQuadric();	
+	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+	gluCylinder(quadratic, 30.0f, 30.0f, 10.0f, 32, 64);
+			
+	glPopMatrix();
+
+	glPushMatrix();
+
+	glRotatef(hurricane_xRot, 1.0f, 0.0f, 0.0f);   
+    glRotatef(hurricane_yRot, 0.0f, 1.0f, 0.0f);
+	glRotatef(hurricane_zDistance, 0.0f, 0.0f, 1.0f);   
+
+	DrawCircle(0.0f, -10.0f, 0.0f, 30.0f, 360);	
+	glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
+	DrawCircle(0.0f, 0.0f, 0.0f, 30.0f, 360);		
+	glPopMatrix();
+
+	glPushMatrix();
+	// LINE
+	glColor4f(0.7f, 0.3f, 0.3f, 0.9f);
+	glLineWidth(10.0f);
+
+	GLUquadricObj *quadratic_line;
+	quadratic = gluNewQuadric();	
+	glTranslatef(0.0f, 80.0f, 0.0f);
+	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);	
+	gluCylinder(quadratic, 3.0f, 3.0f, 80.0f, 32, 64);	
+
 	glPopMatrix();
 }
 
@@ -480,7 +521,7 @@ void ChangeSize(int w, int h)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	gluPerspective(100.0f,fAspect,1.0f,255.0f); 
+	gluPerspective(100.0f,fAspect,1.0f,500.0f); 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	
@@ -496,6 +537,12 @@ void TimerFunction(int value)
 		viking_increment = -viking_increment;
 
 	viking_xRot += viking_increment*((70.0f-abs(viking_xRot)+1.0f)/40.0f);	
+
+	if(hurricane_yRot >= 360.0f || hurricane_yRot <= 0.0f)
+		hurricane_yRot = 0;
+
+	hurricane_yRot += 5.0f;
+
 	glutPostRedisplay(); // refresh. renderScene와 같은 역할이지만 바로 호출하면, 점유율 문제
 	glutTimerFunc(10, TimerFunction, 1); // 스스로 callback
 }
