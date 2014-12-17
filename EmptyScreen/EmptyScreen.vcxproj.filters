@@ -33,5 +33,8 @@
     <ClCompile Include="3week_ambientJet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="viking.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
