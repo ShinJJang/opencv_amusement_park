@@ -10,6 +10,8 @@
 #include <math.h>
 #include <gl/glut.h>
 #include <gl/gltools.h>
+#include <gl/glaux.h>  
+
 static GLfloat viking_xRot = 0.0f;
 static GLfloat viking_yRot = 0.0f;
 static GLfloat viking_zDistance = 0.0f;
@@ -18,10 +20,23 @@ static GLfloat hurricane_xRot = 0.0f;
 static GLfloat hurricane_yRot = 0.0f;
 static GLfloat hurricane_zDistance = 0.0f;
 
+static GLfloat lx, lz = 0.0f;
+static GLfloat angle = 0.0f;
+
 static GLfloat xRot = 0.0f;
 static GLfloat yRot = 0.0f;
 static GLfloat zDistance = 0.0f;
 static GLfloat viking_increment = 1.0f;
+
+static int firecraker_count_points = 0;
+static GLfloat firecraker_x, firecraker_y = 0;
+
+GLfloat window_width;
+GLfloat window_height;
+
+AUX_RGBImageRec * texRec[2];
+GLuint texID[2];
+
 #define PI 3.14f
 
 GLfloat  ambientLight[] = { 0.3f, 0.3f, 0.3f, 1.0f };   
@@ -71,230 +86,8 @@ void SetupRC()
     //gltMakeShadowMatrix(points, lightPos, shadowMat);   
 }
 
-
-void DrawJet(int nShadow)
-{
-	 GLTVector3 vNormal; // Storeage for calculated surface normal   
-   
-    // Nose Cone /////////////////////////////   
-    // Set material color, note we only have to set to black   
-    // for the shadow once   
-    if(nShadow == 0)   
-           glColor3ub(128, 128, 128);   
-    else   
-            glColor3ub(0,0,0);   
-   
-   
-    // Nose Cone - Points straight down   
-    glBegin(GL_TRIANGLES);   
-                glNormal3f(0.0f, -1.0f, 0.0f);   
-        glNormal3f(0.0f, -1.0f, 0.0f);   
-        glVertex3f(0.0f, 0.0f, 60.0f);   
-        glVertex3f(-15.0f, 0.0f, 30.0f);   
-        glVertex3f(15.0f,0.0f,30.0f);   
-                   
-       
-		// Verticies for this panel   
-                {   
-                GLTVector3 vPoints[3] = {{ 15.0f, 0.0f,  30.0f},   
-                                        { 0.0f,  15.0f, 30.0f},   
-                                        { 0.0f,  0.0f,  60.0f}};   
-   
-                // Calculate the normal for the plane   
-                gltGetNormalVector(vPoints[0], vPoints[1], vPoints[2], vNormal);   
-        glNormal3fv(vNormal);   
-        glVertex3fv(vPoints[0]);   
-        glVertex3fv(vPoints[1]);   
-        glVertex3fv(vPoints[2]);   
-                }      
-   
-   
-                {   
-                GLTVector3 vPoints[3] = {{ 0.0f, 0.0f, 60.0f },   
-                                        { 0.0f, 15.0f, 30.0f },   
-                                        { -15.0f, 0.0f, 30.0f }};   
-   
-                gltGetNormalVector(vPoints[0], vPoints[1], vPoints[2], vNormal);   
-                glNormal3fv(vNormal);   
-        glVertex3fv(vPoints[0]);   
-        glVertex3fv(vPoints[1]);   
-        glVertex3fv(vPoints[2]);   
-                }   
-   
-   
-                // Body of the Plane ////////////////////////   
-                {   
-                GLTVector3 vPoints[3] = {{ -15.0f, 0.0f, 30.0f },   
-                                        { 0.0f, 15.0f, 30.0f },   
-                        { 0.0f, 0.0f, -56.0f }};   
-   
-                gltGetNormalVector(vPoints[0], vPoints[1], vPoints[2], vNormal);   
-                glNormal3fv(vNormal);   
-        glVertex3fv(vPoints[0]);   
-        glVertex3fv(vPoints[1]);   
-        glVertex3fv(vPoints[2]);   
-                }   
-                       
-                {   
-                GLTVector3 vPoints[3] = {{ 0.0f, 0.0f, -56.0f },   
-                                        { 0.0f, 15.0f, 30.0f },   
-                                        { 15.0f,0.0f,30.0f }};   
-       
-                gltGetNormalVector(vPoints[0], vPoints[1], vPoints[2], vNormal);   
-                glNormal3fv(vNormal);   
-        glVertex3fv(vPoints[0]);   
-        glVertex3fv(vPoints[1]);   
-        glVertex3fv(vPoints[2]);   
-                }   
-                           
-       
-        glNormal3f(0.0f, -1.0f, 0.0f);   
-        glVertex3f(15.0f,0.0f,30.0f);   
-        glVertex3f(-15.0f, 0.0f, 30.0f);   
-        glVertex3f(0.0f, 0.0f, -56.0f);   
-       
-                ///////////////////////////////////////////////   
-                // Left wing   
-                // Large triangle for bottom of wing   
-                {   
-                GLTVector3 vPoints[3] = {{ 0.0f,2.0f,27.0f },   
-                                        { -60.0f, 2.0f, -8.0f },   
-                                        { 60.0f, 2.0f, -8.0f }};   
-   
-                gltGetNormalVector(vPoints[0], vPoints[1], vPoints[2], vNormal);   
-                glNormal3fv(vNormal);   
-        glVertex3fv(vPoints[0]);   
-        glVertex3fv(vPoints[1]);   
-        glVertex3fv(vPoints[2]);   
-                }   
-                   
-                               
-                {   
-                GLTVector3 vPoints[3] = {{ 60.0f, 2.0f, -8.0f},   
-                    {0.0f, 7.0f, -8.0f},   
-                    {0.0f,2.0f,27.0f }};   
-                   
-                gltGetNormalVector(vPoints[0], vPoints[1], vPoints[2], vNormal);   
-                glNormal3fv(vNormal);   
-        glVertex3fv(vPoints[0]);   
-        glVertex3fv(vPoints[1]);   
-        glVertex3fv(vPoints[2]);   
-                }   
-                   
-                {   
-                GLTVector3 vPoints[3] = {{60.0f, 2.0f, -8.0f},   
-                    {-60.0f, 2.0f, -8.0f},   
-                    {0.0f,7.0f,-8.0f }};   
-   
-                gltGetNormalVector(vPoints[0], vPoints[1], vPoints[2], vNormal);   
-                glNormal3fv(vNormal);   
-        glVertex3fv(vPoints[0]);   
-        glVertex3fv(vPoints[1]);   
-        glVertex3fv(vPoints[2]);   
-                }   
-                   
-                {   
-                GLTVector3 vPoints[3] = {{0.0f,2.0f,27.0f},   
-                                        {0.0f, 7.0f, -8.0f},   
-                                        {-60.0f, 2.0f, -8.0f}};   
-   
-                gltGetNormalVector(vPoints[0], vPoints[1], vPoints[2], vNormal);   
-                glNormal3fv(vNormal);   
-        glVertex3fv(vPoints[0]);   
-        glVertex3fv(vPoints[1]);   
-        glVertex3fv(vPoints[2]);   
-                }   
-                   
-                           
-                // Tail section///////////////////////////////   
-                // Bottom of back fin   
-        glNormal3f(0.0f, -1.0f, 0.0f);   
-        glVertex3f(-30.0f, -0.50f, -57.0f);   
-        glVertex3f(30.0f, -0.50f, -57.0f);   
-        glVertex3f(0.0f,-0.50f,-40.0f);   
-   
-                {   
-                GLTVector3 vPoints[3] = {{ 0.0f,-0.5f,-40.0f },   
-                    {30.0f, -0.5f, -57.0f},   
-                    {0.0f, 4.0f, -57.0f }};   
-   
-                gltGetNormalVector(vPoints[0], vPoints[1], vPoints[2], vNormal);   
-                glNormal3fv(vNormal);   
-        glVertex3fv(vPoints[0]);   
-        glVertex3fv(vPoints[1]);   
-        glVertex3fv(vPoints[2]);   
-                }   
-                   
-                           
-                {   
-                GLTVector3 vPoints[3] = {{ 0.0f, 4.0f, -57.0f },   
-                    { -30.0f, -0.5f, -57.0f },   
-                    { 0.0f,-0.5f,-40.0f }};   
-   
-                gltGetNormalVector(vPoints[0], vPoints[1], vPoints[2], vNormal);   
-                glNormal3fv(vNormal);   
-        glVertex3fv(vPoints[0]);   
-        glVertex3fv(vPoints[1]);   
-        glVertex3fv(vPoints[2]);   
-                }   
-   
-   
-                {   
-                GLTVector3 vPoints[3] = {{ 30.0f,-0.5f,-57.0f },   
-                    { -30.0f, -0.5f, -57.0f },   
-                    { 0.0f, 4.0f, -57.0f }};   
-   
-                gltGetNormalVector(vPoints[0], vPoints[1], vPoints[2], vNormal);   
-                glNormal3fv(vNormal);   
-        glVertex3fv(vPoints[0]);   
-        glVertex3fv(vPoints[1]);   
-        glVertex3fv(vPoints[2]);   
-                }   
-                   
-                {   
-                GLTVector3 vPoints[3] = {{ 0.0f,0.5f,-40.0f },   
-                    { 3.0f, 0.5f, -57.0f },   
-                    { 0.0f, 25.0f, -65.0f }};   
-   
-                gltGetNormalVector(vPoints[0], vPoints[1], vPoints[2], vNormal);   
-                glNormal3fv(vNormal);   
-        glVertex3fv(vPoints[0]);   
-        glVertex3fv(vPoints[1]);   
-        glVertex3fv(vPoints[2]);   
-                }   
-                   
-                           
-                {   
-                GLTVector3 vPoints[3] = {{ 0.0f, 25.0f, -65.0f },   
-                    { -3.0f, 0.5f, -57.0f},   
-                    { 0.0f,0.5f,-40.0f }};   
-   
-                gltGetNormalVector(vPoints[0], vPoints[1], vPoints[2], vNormal);   
-                glNormal3fv(vNormal);   
-        glVertex3fv(vPoints[0]);   
-        glVertex3fv(vPoints[1]);   
-        glVertex3fv(vPoints[2]);   
-                }   
-                   
-                {   
-                GLTVector3 vPoints[3] = {{ 3.0f,0.5f,-57.0f },   
-                    { -3.0f, 0.5f, -57.0f },   
-                    { 0.0f, 25.0f, -65.0f }};   
-   
-                gltGetNormalVector(vPoints[0], vPoints[1], vPoints[2], vNormal);   
-                glNormal3fv(vNormal);   
-        glVertex3fv(vPoints[0]);   
-        glVertex3fv(vPoints[1]);   
-        glVertex3fv(vPoints[2]);   
-                }   
-                   
-                   
-        glEnd(); 
-}
-
 void Viking(){
-	
-	
+	glTranslatef(0.0f + lx, 0.0f, 0.0f + lz);
     glRotatef(viking_xRot, 1.0f, 0.0f, 0.0f);   
     glRotatef(viking_yRot, 0.0f, 1.0f, 0.0f);
 	glRotatef(viking_zDistance, 0.0f, 0.0f, 1.0f);   
@@ -364,10 +157,11 @@ void DrawCircle(float cx, float cy, float cz, float r, int num_segments) {
 }
 
 void Hurricane() {
+	glTranslatef(200.0f + lx, 0.f, 0.0f + lz);
 	glRotatef(viking_xRot, 1.0f, 0.0f, 0.0f);   
     glRotatef(viking_yRot, 0.0f, 1.0f, 0.0f);
-	glRotatef(viking_zDistance, 0.0f, 0.0f, 1.0f);   
-	glTranslatef(200.0f, -50.0f, 0.0f);
+	glRotatef(viking_zDistance, 0.0f, 0.0f, 1.0f);
+	glTranslatef(0.f, -50.0f, 0.0f);
 
 	glPushMatrix();
 	
@@ -407,13 +201,182 @@ void Hurricane() {
 	glPopMatrix();
 }
 
+void Rollarcoaster(void) {
+	
+}
+
+void Merry_go_round(void) {
+	GLfloat x,y,angle;
+	int iPivot =1;           // add
+
+	glTranslatef(-100.0f + lx, -50.0f, -100.0f + lz);
+
+	// 하판
+	glPushMatrix();
+	
+	glRotatef(hurricane_xRot, 1.0f, 0.0f, 0.0f);   
+    glRotatef(hurricane_yRot, 0.0f, 1.0f, 0.0f);
+	glRotatef(hurricane_zDistance, 0.0f, 0.0f, 1.0f);   
+
+	GLUquadricObj *quadratic;
+	quadratic = gluNewQuadric();	
+	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+	gluCylinder(quadratic, 60.0f, 60.0f, 5.0f, 32, 64);
+			
+	glPopMatrix();
+
+	glPushMatrix();
+
+	glRotatef(hurricane_xRot, 1.0f, 0.0f, 0.0f);   
+    glRotatef(hurricane_yRot, 0.0f, 1.0f, 0.0f);
+	glRotatef(hurricane_zDistance, 0.0f, 0.0f, 1.0f);   
+
+	DrawCircle(0.0f, -5.0f, 0.0f, 60.0f, 360);	
+	glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
+	DrawCircle(0.0f, 0.0f, 0.0f, 60.0f, 360);		
+	glPopMatrix();
+
+	// 상판	
+	glPushMatrix();
+	glTranslatef(0.f, 50.f, 0.f);
+	glRotatef(hurricane_xRot, 1.0f, 0.0f, 0.0f);
+    glRotatef(hurricane_yRot, 0.0f, 1.0f, 0.0f);
+	glRotatef(hurricane_zDistance, 0.0f, 0.0f, 1.0f);
+	glRotatef(270.0f, 1.0f, 0.0f, 0.0f);
+	
+	glDisable(GL_CULL_FACE);  	
+	glBegin(GL_TRIANGLE_FAN); // add
+	glVertex3f(0.0f, 0.0f, 45.0f); // add - 기준점
+	for(angle = 0.0f; angle < (2.0f*PI); angle += (PI/8.0f)) 
+	{		
+		x = 60.0f*sin(angle);
+		y = 60.0f*cos(angle);
+		if((iPivot %2) == 0) // add
+			glColor3f(0.0f, 1.0f, 0.0f);
+		else
+			glColor3f(1.0f, 0.0f, 0.0f);
+		iPivot++;           // add
+		glVertex2f(x, y);
+	}
+	glEnd();
+	glBegin(GL_TRIANGLE_FAN); // add
+	glVertex2f(0.0f, 0.0f);   // add - 기준점
+	for(angle = 0.0f; angle < (2.0f*PI); angle += (PI/8.0f))
+	{
+		x = 60.0f*sin(angle);
+		y = 60.0f*cos(angle);
+		if((iPivot %2) == 0)    // add
+			glColor3f(0.0f, 1.0f, 0.0f);
+		else
+			glColor3f(1.0f, 0.0f, 0.0f);
+		iPivot++;
+		glVertex2f(x, y);
+	}
+	glEnd();
+
+	// 하판 위에 올라올 오브젝트
+	glPopMatrix();
+
+	glPushMatrix();
+	glRotatef(hurricane_xRot, 1.0f, 0.0f, 0.0f);
+    glRotatef(hurricane_yRot, 0.0f, 1.0f, 0.0f);
+	glRotatef(hurricane_zDistance, 0.0f, 0.0f, 1.0f);
+	
+	glTranslatef(35.0f, 0.f, 0.f);
+	glutSolidCube(20);
+	
+	glTranslatef(-35.f, 0.f, 35.f);
+	glutSolidCube(20);
+	
+	glTranslatef(-35.f, 0.f, -35.f);
+	glutSolidCube(20);
+	
+	glTranslatef(35.f, 0.f, -35.f);
+	glutSolidCube(20);
+	
+	glPopMatrix();
+
+	glPushMatrix();
+	// LINE
+	glColor4f(0.7f, 0.3f, 0.3f, 0.9f);
+	glLineWidth(10.0f);
+
+	GLUquadricObj *quadratic_line;
+	quadratic = gluNewQuadric();	
+	glTranslatef(0.0f, 50.0f, 0.0f);
+	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);	
+	gluCylinder(quadratic, 3.0f, 3.0f, 50.0f, 32, 64);	
+
+	glPopMatrix();
+}
+
+void FireCraker(void) {
+	GLfloat z,angle;
+	int i;
+
+	glPushMatrix();
+	glTranslatef(0.f, 100.f, -100.f);
+	glRotatef(-70.f, 1.0f, 0.f, 0.f);
+	
+	glBegin(GL_POINTS); //add
+	z = -50.0f;
+	for(angle = 0.0f, i = 0; i < firecraker_count_points; i++, angle += 0.1f) 
+	{
+		firecraker_x = (angle)*sin(angle*i);
+		firecraker_y = (angle)*cos(angle*i);
+		glVertex3f(firecraker_x,firecraker_y,z);
+		z += 0.5f;
+	}
+	glEnd();
+	glPopMatrix();
+	glPushMatrix();
+	glTranslatef(200.f, 100.f, -100.f);
+	glRotatef(-70.f, 1.0f, 0.f, 0.f);
+	
+	glBegin(GL_POINTS); //add
+	z = -50.0f;
+	for(angle = 0.0f, i = 0; i < firecraker_count_points; i++, angle += 0.1f) 
+	{
+		firecraker_x = (angle)*sin(angle*i);
+		firecraker_y = (angle)*cos(angle*i);
+		glVertex3f(firecraker_x,firecraker_y,z);
+		z += 0.5f;
+	}
+
+	glEnd();
+	glPopMatrix();
+}
+
 void RenderScene(void)
 {
 	// Clear the window with current clearing color   
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);   
    
+	/* 너무 느려져서 안씀
+	texRec[0] = auxDIBImageLoad(L"Earth.bmp"); //add  
+	texRec[1] = auxDIBImageLoad(L"Sun.bmp"); //add  
+	glGenTextures(2, texID); // 두 개의 멀티 텍스쳐 ID 배열 설정
+	
+	for(int i =0; i<2 ; i++) //add  ///////////////////////////////////////////
+	{
+	glBindTexture(GL_TEXTURE_2D, texID[i]);  // 사용할 텍스쳐  ID 지정
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, texRec[i]->sizeX, texRec[i]->sizeY, 0, GL_RGB, 
+                 GL_UNSIGNED_BYTE, texRec[i]->data);  //ID 지정 후 해당 텍스쳐 정의 (자동으로 연결된다)
+	}*/
+
+
     // Draw the ground, we do manual shading to a darker green   
-    // in the background to give the illusion of depth   
+    // in the background to give the illusion of depth
+	glPushMatrix();
+	glTranslatef(lx, 0.0f, lz);
+	glRotatef(xRot, 1.0f, 0.0f, 0.0f);   
+    glRotatef(yRot, 0.0f, 1.0f, 0.0f);   
+	glRotatef(zDistance, 0.0f, 0.0f, 1.0f);    
+	FireCraker();
     glBegin(GL_QUADS);   
         glColor3ub(0,32,0);   
         glVertex3f(400.0f, -150.0f, -200.0f);   
@@ -421,7 +384,8 @@ void RenderScene(void)
         glColor3ub(0,255,0);   
         glVertex3f(-400.0f, -150.0f, 200.0f);   
         glVertex3f(400.0f, -150.0f, 200.0f);   
-    glEnd();   
+    glEnd();
+	glPopMatrix();
    
 	// 바이킹
     // Save the matrix state and do the rotations   
@@ -453,6 +417,34 @@ void RenderScene(void)
     // Restore original matrix state   
     glPopMatrix();
    
+	// 롤러코스터
+    glPushMatrix();   
+   
+    glEnable(GL_LIGHTING);   
+    glLightfv(GL_LIGHT0,GL_POSITION,lightPos);
+	glRotatef(xRot, 1.0f, 0.0f, 0.0f);   
+    glRotatef(yRot, 0.0f, 1.0f, 0.0f);   
+	glRotatef(zDistance, 0.0f, 0.0f, 1.0f);    
+
+	Rollarcoaster();	
+   
+    // Restore original matrix state   
+    glPopMatrix();
+
+	// 회전 목마
+    glPushMatrix();   
+   
+    glEnable(GL_LIGHTING);   
+    glLightfv(GL_LIGHT0,GL_POSITION,lightPos);
+	glRotatef(xRot, 1.0f, 0.0f, 0.0f);   
+    glRotatef(yRot, 0.0f, 1.0f, 0.0f);   
+	glRotatef(zDistance, 0.0f, 0.0f, 1.0f);    
+
+	Merry_go_round();	
+   
+    // Restore original matrix state   
+    glPopMatrix();
+
     // Get ready to draw the shadow and the ground   
     // First disable lighting and save the projection state   
     glDisable(GL_DEPTH_TEST);   
@@ -468,7 +460,6 @@ void RenderScene(void)
 	glRotatef(zDistance, 0.0f, 0.0f, 1.0f);
    
     // Pass true to indicate drawing shadow   
-    //DrawJet(1);	
    
     // Restore the projection to normal   
     glPopMatrix();   
@@ -490,22 +481,28 @@ void RenderScene(void)
 void ContorolKey(int key, int x, int y)
 {
 	if(key == GLUT_KEY_UP)
-		xRot-= 5.0f;
+		lz += 5.0f;
 
-	if(key == GLUT_KEY_DOWN)
-		xRot += 5.0f;
+	if(key == GLUT_KEY_DOWN)		
+		lz -= 5.0f;
 
-	if(key == GLUT_KEY_LEFT)
-		yRot -= 5.0f;
+	if(key == GLUT_KEY_LEFT)		
+		lx += 5.0f;
 
-	if(key == GLUT_KEY_RIGHT)
-		yRot += 5.0f;
+	if(key == GLUT_KEY_RIGHT)	
+		lx -= 5.0f;
 
 	if(key == GLUT_KEY_HOME)
-		zDistance += 5.0f;
+		yRot += 5.0f;
 	
 	if(key == GLUT_KEY_END)
-		zDistance -= 5.0f;
+		yRot -= 5.0f;
+
+	if(key == GLUT_KEY_PAGE_UP)
+		xRot += 5.0f;
+
+	if(key == GLUT_KEY_PAGE_DOWN)
+		xRot -= 5.0f;	
 
 	glutPostRedisplay();
 }
@@ -515,6 +512,9 @@ void ChangeSize(int w, int h)
 	GLfloat fAspect;
     GLfloat lightPos[] = { -50.f, 50.0f, 100.0f, 1.0f };  
      //light position 
+
+	window_width = w;
+	window_height = h;
 
 	glViewport(0,0,w,h);
 	fAspect = (GLfloat)w/(GLfloat)h; 
@@ -533,15 +533,26 @@ void ChangeSize(int w, int h)
 
 void TimerFunction(int value) 
 {	
+	// 바이킹 흔들림
+	if(viking_increment == 0)
+		viking_increment = 1.0f;
+
 	if(viking_xRot <= -70.0f || viking_xRot >= 70.0f)
 		viking_increment = -viking_increment;
 
 	viking_xRot += viking_increment*((70.0f-abs(viking_xRot)+1.0f)/40.0f);	
 
+	// 허리케인 회전
 	if(hurricane_yRot >= 360.0f || hurricane_yRot <= 0.0f)
 		hurricane_yRot = 0;
 
 	hurricane_yRot += 5.0f;
+
+	// 폭죽
+	firecraker_count_points += 1;
+
+	if(firecraker_count_points > 200)
+		firecraker_count_points = 1;
 
 	glutPostRedisplay(); // refresh. renderScene와 같은 역할이지만 바로 호출하면, 점유율 문제
 	glutTimerFunc(10, TimerFunction, 1); // 스스로 callback
@@ -551,8 +562,8 @@ void main(void)
 {
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize(800,600);
-	glutInitWindowPosition(0,0);
-	glutCreateWindow("Light Jet");
+	glutInitWindowPosition(500,200);
+	glutCreateWindow("GL Amusement park");
 
 	glutReshapeFunc(ChangeSize);
 	glutSpecialFunc(ContorolKey);
